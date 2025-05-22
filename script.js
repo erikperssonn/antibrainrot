@@ -4,16 +4,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const addSiteButton = document.getElementById('addSiteButton');
   const blockedSitesList = document.getElementById('blockedSitesList');
 
-  // Math Challenge Modal Elements
+  // Remove Site Math Challenge Modal Elements
   const mathChallengeModal = document.getElementById('mathChallengeModal');
   const closeMathChallengeButton = document.getElementById('closeMathChallengeButton');
   const mathProblemsContainer = document.getElementById('mathProblemsContainer');
   const submitMathAnswersButton = document.getElementById('submitMathAnswersButton');
   const mathChallengeSiteUrlElement = document.getElementById('mathChallengeSiteUrl');
   const mathChallengeErrorElement = document.getElementById('mathChallengeError');
+  const removeChallengeProblemCountElement = document.getElementById('removeChallengeProblemCount');
 
-  let currentChallengeIndex = -1;
-  let mathProblems = [];
+
+  // Show Password Math Challenge Modal Elements
+  const showPasswordMathChallengeModal = document.getElementById('showPasswordMathChallengeModal');
+  const closeShowPasswordMathChallengeButton = document.getElementById('closeShowPasswordMathChallengeButton');
+  const showPasswordMathProblemsContainer = document.getElementById('showPasswordMathProblemsContainer');
+  const submitShowPasswordMathAnswersButton = document.getElementById('submitShowPasswordMathAnswersButton');
+  const showPasswordChallengeSiteUrlElement = document.getElementById('showPasswordChallengeSiteUrl');
+  const showPasswordMathChallengeErrorElement = document.getElementById('showPasswordMathChallengeError');
+
+  let currentChallengeIndex = -1; // Used for remove challenge
+  let currentShowPasswordSiteData = null; // Used for show password challenge { siteObj, passwordDisplay, toggleButton, toggleHint }
+  let mathProblems = []; // Shared for both challenges, reset each time
+
+  const REMOVE_CHALLENGE_PROBLEM_COUNT = 6; // As per your existing code for remove
+  const SHOW_PASSWORD_CHALLENGE_PROBLEM_COUNT = 3;
+
+  if(removeChallengeProblemCountElement) {
+    removeChallengeProblemCountElement.textContent = REMOVE_CHALLENGE_PROBLEM_COUNT;
+  }
 
   loadBlockedSites();
 
@@ -67,31 +85,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const urlText = document.createElement('span');
       urlText.textContent = siteObj.url;
+      urlText.classList.add('site-url-display');
       siteInfoContainer.appendChild(urlText);
+
+      const passwordArea = document.createElement('div');
+      passwordArea.classList.add('password-area');
 
       const passwordDisplay = document.createElement('span');
       passwordDisplay.textContent = 'Password: ••••••••';
-      passwordDisplay.style.fontSize = '0.9em';
-      passwordDisplay.style.color = '#666';
-      siteInfoContainer.appendChild(passwordDisplay);
+      passwordDisplay.classList.add('password-text-display');
+      passwordArea.appendChild(passwordDisplay);
+
+      const toggleHint = document.createElement('span');
+      toggleHint.classList.add('toggle-hint');
+      toggleHint.style.display = 'none';
+      toggleHint.textContent = 'Click button to hide';
+      passwordArea.appendChild(toggleHint);
       
+      siteInfoContainer.appendChild(passwordArea);
       listItem.appendChild(siteInfoContainer);
 
       const controlsDiv = document.createElement('div');
       controlsDiv.classList.add('site-controls');
 
       const togglePasswordButton = document.createElement('button');
-      togglePasswordButton.textContent = 'Show';
+      togglePasswordButton.textContent = 'Show Password';
       togglePasswordButton.classList.add('show-hide-password');
-      let passwordVisible = false;
+      // We use a data attribute on the button to track visibility state post-challenge
+      togglePasswordButton.dataset.passwordShown = 'false'; 
+
       togglePasswordButton.addEventListener('click', () => {
-        passwordVisible = !passwordVisible;
-        if (passwordVisible) {
-          passwordDisplay.textContent = `Password: ${siteObj.password}`;
-          togglePasswordButton.textContent = 'Hide';
-        } else {
+        if (togglePasswordButton.dataset.passwordShown === 'true') {
+          // Password is visible, so hide it
           passwordDisplay.textContent = 'Password: ••••••••';
-          togglePasswordButton.textContent = 'Show';
+          togglePasswordButton.textContent = 'Show Password';
+          toggleHint.style.display = 'none';
+          togglePasswordButton.dataset.passwordShown = 'false';
+        } else {
+          // Password is not visible, initiate challenge
+          initiateShowPasswordMathChallenge(siteObj, passwordDisplay, togglePasswordButton, toggleHint);
         }
       });
       controlsDiv.appendChild(togglePasswordButton);
@@ -99,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const removeButton = document.createElement('button');
       removeButton.textContent = 'Remove';
       removeButton.addEventListener('click', () => {
-        initiateMathChallenge(index, siteObj.url);
+        initiateRemoveMathChallenge(index, siteObj.url);
       });
       controlsDiv.appendChild(removeButton);
       
@@ -112,35 +144,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const num1 = Math.floor(Math.random() * 80) + 10;
     const num2 = Math.floor(Math.random() * 80) + 10;
     const num3 = Math.floor(Math.random() * 80) + 1;
-
     const question = `${num1} + ${num2} + ${num3} = ?`;
     const answer = num1 + num2 + num3;
     return { question, answer };
   }
 
-  function initiateMathChallenge(index, siteUrl) {
+  // --- Remove Site Math Challenge Functions ---
+  function initiateRemoveMathChallenge(index, siteUrl) {
     currentChallengeIndex = index;
     mathProblems = [];
     mathProblemsContainer.innerHTML = ''; 
     mathChallengeErrorElement.textContent = '';
     mathChallengeSiteUrlElement.textContent = siteUrl;
 
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < REMOVE_CHALLENGE_PROBLEM_COUNT; i++) {
       const problem = generateMathProblem();
       mathProblems.push(problem);
-
       const problemDiv = document.createElement('div');
       problemDiv.classList.add('problem');
-
       const label = document.createElement('label');
       label.textContent = problem.question.replace(' = ?', ' =');
       problemDiv.appendChild(label);
-
       const input = document.createElement('input');
       input.type = 'number';
       input.dataset.problemIndex = i;
       problemDiv.appendChild(input);
-      
       mathProblemsContainer.appendChild(problemDiv);
     }
     mathChallengeModal.style.display = 'block';
@@ -148,19 +176,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (firstInput) firstInput.focus();
   }
 
-  function verifyMathAnswers() {
+  function verifyRemoveMathAnswers() {
     let allCorrect = true;
     for (let i = 0; i < mathProblems.length; i++) {
       const inputElement = mathProblemsContainer.querySelector(`input[data-problem-index="${i}"]`);
       const userAnswer = parseInt(inputElement.value, 10);
       if (isNaN(userAnswer) || userAnswer !== mathProblems[i].answer) {
         allCorrect = false;
-        inputElement.style.border = '1px solid red'; // Highlight incorrect
+        inputElement.style.border = '1px solid red';
       } else {
-        inputElement.style.border = '1px solid #ccc'; // Reset border
+        inputElement.style.border = '1px solid #ccc';
       }
     }
-
     if (allCorrect) {
       mathChallengeErrorElement.textContent = '';
       mathChallengeModal.style.display = 'none';
@@ -187,19 +214,95 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- Show Password Math Challenge Functions ---
+  function initiateShowPasswordMathChallenge(siteObj, passwordDisplayElement, toggleButtonElement, toggleHintElement) {
+    currentShowPasswordSiteData = { 
+      siteObj: siteObj, 
+      passwordDisplay: passwordDisplayElement, 
+      toggleButton: toggleButtonElement,
+      toggleHint: toggleHintElement
+    };
+    mathProblems = [];
+    showPasswordMathProblemsContainer.innerHTML = ''; 
+    showPasswordMathChallengeErrorElement.textContent = '';
+    showPasswordChallengeSiteUrlElement.textContent = siteObj.url;
+
+    for (let i = 0; i < SHOW_PASSWORD_CHALLENGE_PROBLEM_COUNT; i++) {
+      const problem = generateMathProblem();
+      mathProblems.push(problem);
+      const problemDiv = document.createElement('div');
+      problemDiv.classList.add('problem');
+      const label = document.createElement('label');
+      label.textContent = problem.question.replace(' = ?', ' =');
+      problemDiv.appendChild(label);
+      const input = document.createElement('input');
+      input.type = 'number';
+      input.dataset.problemIndex = i; // Use same dataset for consistency
+      problemDiv.appendChild(input);
+      showPasswordMathProblemsContainer.appendChild(problemDiv);
+    }
+    showPasswordMathChallengeModal.style.display = 'block';
+    const firstInput = showPasswordMathProblemsContainer.querySelector('input');
+    if (firstInput) firstInput.focus();
+  }
+
+  function verifyShowPasswordMathAnswers() {
+    let allCorrect = true;
+    for (let i = 0; i < mathProblems.length; i++) { // mathProblems is now for show password
+      const inputElement = showPasswordMathProblemsContainer.querySelector(`input[data-problem-index="${i}"]`);
+      const userAnswer = parseInt(inputElement.value, 10);
+      if (isNaN(userAnswer) || userAnswer !== mathProblems[i].answer) {
+        allCorrect = false;
+        inputElement.style.border = '1px solid red';
+      } else {
+        inputElement.style.border = '1px solid #ccc';
+      }
+    }
+
+    if (allCorrect) {
+      showPasswordMathChallengeErrorElement.textContent = '';
+      showPasswordMathChallengeModal.style.display = 'none';
+      
+      // Reveal the password
+      if (currentShowPasswordSiteData) {
+        currentShowPasswordSiteData.passwordDisplay.textContent = `Password: ${currentShowPasswordSiteData.siteObj.password}`;
+        currentShowPasswordSiteData.toggleButton.textContent = 'Hide Password';
+        currentShowPasswordSiteData.toggleHint.style.display = 'inline';
+        currentShowPasswordSiteData.toggleButton.dataset.passwordShown = 'true';
+        currentShowPasswordSiteData = null; // Reset
+      }
+    } else {
+      showPasswordMathChallengeErrorElement.textContent = 'One or more answers are incorrect. Please try again.';
+    }
+  }
+
+  // --- Event Listeners for Modals ---
   if (closeMathChallengeButton) {
     closeMathChallengeButton.addEventListener('click', () => {
       mathChallengeModal.style.display = 'none';
     });
   }
-
   if (submitMathAnswersButton) {
-    submitMathAnswersButton.addEventListener('click', verifyMathAnswers);
+    submitMathAnswersButton.addEventListener('click', verifyRemoveMathAnswers);
+  }
+
+  if (closeShowPasswordMathChallengeButton) {
+    closeShowPasswordMathChallengeButton.addEventListener('click', () => {
+      showPasswordMathChallengeModal.style.display = 'none';
+      currentShowPasswordSiteData = null; // Reset if closed manually
+    });
+  }
+  if (submitShowPasswordMathAnswersButton) {
+    submitShowPasswordMathAnswersButton.addEventListener('click', verifyShowPasswordMathAnswers);
   }
 
   window.addEventListener('click', (event) => {
     if (event.target === mathChallengeModal) {
       mathChallengeModal.style.display = 'none';
+    }
+    if (event.target === showPasswordMathChallengeModal) {
+      showPasswordMathChallengeModal.style.display = 'none';
+      currentShowPasswordSiteData = null; // Reset if closed manually
     }
   });
 });

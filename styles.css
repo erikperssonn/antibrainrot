@@ -1,7 +1,6 @@
-/* filepath: c:\Users\erikp\egnaprojekt\antibrainrot\styles.css */
 body {
   font-family: Arial, sans-serif;
-  width: 320px; /* For popup */
+  width: 350px; /* Slightly wider for better layout */
   padding: 15px;
   box-sizing: border-box;
   background-color: #f4f4f9;
@@ -12,9 +11,10 @@ h2, h3 {
   color: #333;
   margin-top: 0;
   margin-bottom: 10px;
+  text-align: center; /* Center headings */
 }
 
-div {
+div.section-container { /* New class for main sections in popup */
   margin-bottom: 20px;
   background-color: #fff;
   padding: 15px;
@@ -23,7 +23,7 @@ div {
 }
 
 input[type="text"], input[type="password"] {
-  width: calc(100% - 24px); /* Account for padding */
+  width: calc(100% - 22px); /* Adjusted for padding */
   padding: 10px;
   margin-bottom: 10px;
   border: 1px solid #ccc;
@@ -32,27 +32,37 @@ input[type="text"], input[type="password"] {
 }
 
 button {
-  padding: 10px 18px;
+  padding: 10px 15px; /* Adjusted padding */
   background-color: #007bff;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  display: block; /* Make buttons block to center them or fill width */
+  width: 100%;
+  margin-bottom: 5px; /* Space between buttons if stacked */
+}
+button:last-child {
+  margin-bottom: 0;
 }
 
 button:hover {
   background-color: #0056b3;
 }
 
-ul {
+ul#blockedSitesList {
   list-style-type: none;
   padding: 0;
   margin: 0;
+  max-height: 200px; /* Add max height and scroll for long lists */
+  overflow-y: auto;
+  border: 1px solid #eee; /* Optional: border around the list */
+  border-radius: 4px;
 }
 
 li {
-  padding: 8px 0;
+  padding: 10px; /* Increased padding */
   border-bottom: 1px solid #eee;
   display: flex;
   justify-content: space-between;
@@ -64,40 +74,72 @@ li:last-child {
   border-bottom: none;
 }
 
-li button {
-  background-color: #dc3545;
-  padding: 5px 10px;
-  font-size: 12px;
-}
-
-li button:hover {
-  background-color: #c82333;
-}
-
-/* Styles for password_prompt.html */
-.container { /* Used in password_prompt.html */
+li div.site-info-container {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 90vh; /* Adjusted for better centering */
-  text-align: center;
-  padding: 20px;
-  box-sizing: border-box;
-  width: 100%; /* Ensure it takes full width for centering */
+  align-items: flex-start;
+  flex-grow: 1;
+  margin-right: 10px; /* Space between info and controls */
+  overflow: hidden; /* Prevent long text from pushing controls */
 }
 
-#errorMessage { /* Used in password_prompt.html */
-  margin-top: 15px;
-  color: #dc3545;
+span.site-url-display {
   font-weight: bold;
+  word-break: break-all; /* Break long URLs */
+  margin-bottom: 4px;
 }
 
-/* ...existing code... */
-li button:hover {
+div.password-area {
+  display: flex;
+  flex-direction: column; /* Stack password and hint */
+  font-size: 0.9em;
+  color: #555;
+}
+
+span.password-text-display {
+  word-break: break-all; /* Break long passwords if shown */
+}
+
+span.toggle-hint {
+  font-size: 0.8em;
+  color: #777;
+  margin-top: 2px;
+}
+
+li div.site-controls {
+  display: flex;
+  flex-direction: column; /* Stack buttons vertically */
+  align-items: flex-end; /* Align buttons to the right */
+  flex-shrink: 0; /* Prevent controls from shrinking */
+}
+
+li div.site-controls button {
+  width: auto; /* Allow buttons to size to content */
+  padding: 6px 10px; /* Smaller padding for list buttons */
+  font-size: 12px;
+  margin-bottom: 5px; /* Space between buttons in controls */
+}
+li div.site-controls button:last-child {
+  margin-bottom: 0;
+}
+
+
+li button.show-hide-password {
+  background-color: #17a2b8;
+}
+li button.show-hide-password:hover {
+  background-color: #138496;
+}
+
+li button { /* General style for remove button in list */
+  background-color: #dc3545;
+}
+
+li button:hover { /* General hover for remove button in list */
   background-color: #c82333;
 }
 
+/* ... (keep existing modal and password_prompt.html styles) ... */
 /* Styles for password_prompt.html body */
 body.password-prompt-page {
   width: 100%; /* Override popup width */
@@ -124,7 +166,6 @@ body.password-prompt-page {
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
-/* ...existing code... */
 
 #errorMessage { /* Used in password_prompt.html */
   margin-top: 15px;
@@ -195,26 +236,4 @@ body.password-prompt-page {
   color: #dc3545;
   font-weight: bold;
   margin-top: 10px;
-}
-
-li div.site-info-container {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  flex-grow: 1;
-}
-
-li div.site-controls {
-  display: flex;
-  align-items: center;
-}
-
-li button.show-hide-password {
-  background-color: #17a2b8;
-  padding: 5px 8px;
-  font-size: 11px;
-  margin-right: 5px; /* Space between show/hide and remove */
-}
-li button.show-hide-password:hover {
-  background-color: #138496;
 }

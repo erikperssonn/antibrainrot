@@ -1,33 +1,75 @@
-// filepath: c:\Users\erikp\egnaprojekt\antibrainrot\background.js
+// In-memory store for sites unlocked in the current session
+let unlockedHostnamesInSession = new Set();
+
+// Function to load unlocked sites from session storage into the in-memory Set
+async function loadUnlockedSitesFromSession() {
+  try {
+    const data = await chrome.storage.session.get({ unlockedInSession: [] });
+    unlockedHostnamesInSession = new Set(data.unlockedInSession);
+    console.log('Loaded unlocked sites from session storage:', Array.from(unlockedHostnamesInSession));
+  } catch (error) {
+    console.error("Error loading unlocked sites from session storage:", error);
+    unlockedHostnamesInSession = new Set(); // Ensure it's initialized on error
+  }
+}
+
+// Function to save the in-memory Set to session storage
+async function saveUnlockedSitesToSession() {
+  try {
+    await chrome.storage.session.set({ unlockedInSession: Array.from(unlockedHostnamesInSession) });
+    console.log('Saved unlocked sites to session storage:', Array.from(unlockedHostnamesInSession));
+  } catch (error) {
+    console.error("Error saving unlocked sites to session storage:", error);
+  }
+}
+
+// Load unlocked sites when the service worker starts
+(async () => {
+  await loadUnlockedSitesFromSession();
+})();
+
 chrome.webNavigation.onBeforeNavigate.addListener(
   async (details) => {
     if (details.frameId !== 0 || details.frameType !== 'outermost_frame') {
       return;
     }
 
-    const { blockedSites = [] } = await chrome.storage.sync.get('blockedSites');
-    const { unlockedInSession = [] } = await chrome.storage.session.get('unlockedInSession');
-
     const currentUrl = new URL(details.url);
     const currentHostname = currentUrl.hostname.toLowerCase();
 
-    // Check if already unlocked in this session
-    if (unlockedInSession.includes(currentHostname)) {
+    // Check if already unlocked in this session (using the in-memory Set)
+    if (unlockedHostnamesInSession.has(currentHostname)) {
+      console.log(`Site ${currentHostname} is already unlocked (in-memory check).`);
       return;
     }
 
+    // If not in memory, as a fallback (e.g. SW restarted and initial load is pending, or an edge case)
+    // check session storage directly. This is the part that might have been slow for reloads.
+    // The in-memory check above should ideally prevent hitting this for already unlocked sites.
+    const sessionData = await chrome.storage.session.get({ unlockedInSession: [] });
+    if (new Set(sessionData.unlockedInSession).has(currentHostname)) {
+        console.log(`Site ${currentHostname} is already unlocked (session storage check).`);
+        // Sync to in-memory if found here but not in memory (e.g., after SW restart)
+        if (!unlockedHostnamesInSession.has(currentHostname)) {
+            unlockedHostnamesInSession.add(currentHostname);
+        }
+        return;
+    }
+
+    const { blockedSites = [] } = await chrome.storage.sync.get('blockedSites');
     const blockedSiteEntry = blockedSites.find(site => 
-      currentHostname.includes(site.url.toLowerCase()) // site.url should be a hostname
+      currentHostname.includes(site.url.toLowerCase())
     );
 
     if (blockedSiteEntry) {
+      console.log(`Site ${currentHostname} is blocked. Redirecting to prompt.`);
       const passwordPromptPageUrl = chrome.runtime.getURL('password_prompt.html');
       if (details.url.startsWith(passwordPromptPageUrl)) {
-        return;
+        return; // Avoid redirect loop
       }
 
       const targetUrl = encodeURIComponent(details.url);
-      const siteToUnlock = encodeURIComponent(currentHostname); // Pass the specific hostname
+      const siteToUnlock = encodeURIComponent(currentHostname);
       chrome.tabs.update(details.tabId, {
         url: `${passwordPromptPageUrl}?targetUrl=${targetUrl}&siteToUnlock=${siteToUnlock}`
       });
@@ -36,28 +78,24 @@ chrome.webNavigation.onBeforeNavigate.addListener(
   { url: [{ schemes: ['http', 'https'] }] }
 );
 
-// ...existing code...
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "checkPassword") {
-    const { password, siteUrl } = request; // siteUrl is currentHostname (e.g., www.example.com)
-    chrome.storage.sync.get({ blockedSites: [] }, async (data) => {
-      // Correctly find the siteEntry:
-      // The siteUrl (e.g., www.example.com or example.com) should include the stored site.url (e.g., example.com)
-      // And the stored site.url should also include the siteUrl if they are to be considered a match for password checking.
-      // More robustly, find the entry that was used to trigger the block.
-      // The siteUrl passed is the specific hostname that was blocked.
-      // We need to find which rule in blockedSites caused this specific hostname to be blocked.
-      const siteEntry = data.blockedSites.find(s => siteUrl.toLowerCase().includes(s.url.toLowerCase()));
+    const { password, siteUrl } = request; // siteUrl is currentHostname
+    chrome.storage.sync.get({ blockedSites: [] }, async (dataSync) => {
+      const siteEntry = dataSync.blockedSites.find(s => siteUrl.toLowerCase().includes(s.url.toLowerCase()));
 
       if (siteEntry && siteEntry.password === password) {
-        // Add siteUrl (which is the specific currentHostname that was unlocked) to session unlocked list
-        const { unlockedInSession = [] } = await chrome.storage.session.get('unlockedInSession');
-        if (!unlockedInSession.includes(siteUrl)) { // siteUrl is currentHostname
-          unlockedInSession.push(siteUrl);
-          await chrome.storage.session.set({ unlockedInSession });
+        console.log(`Password correct for ${siteUrl}. Unlocking.`);
+        // Add to in-memory Set first for immediate effect
+        if (!unlockedHostnamesInSession.has(siteUrl)) {
+            unlockedHostnamesInSession.add(siteUrl);
+            console.log(`Added ${siteUrl} to in-memory unlocked set.`);
         }
+        // Then, update chrome.storage.session asynchronously
+        await saveUnlockedSitesToSession(); 
         sendResponse({ authenticated: true });
       } else {
+        console.log(`Password incorrect for ${siteUrl}.`);
         sendResponse({ authenticated: false });
       }
     });
