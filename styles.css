@@ -1,0 +1,220 @@
+/* filepath: c:\Users\erikp\egnaprojekt\antibrainrot\styles.css */
+body {
+  font-family: Arial, sans-serif;
+  width: 320px; /* For popup */
+  padding: 15px;
+  box-sizing: border-box;
+  background-color: #f4f4f9;
+  color: #333;
+}
+
+h2, h3 {
+  color: #333;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+div {
+  margin-bottom: 20px;
+  background-color: #fff;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+input[type="text"], input[type="password"] {
+  width: calc(100% - 24px); /* Account for padding */
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+button {
+  padding: 10px 18px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+}
+
+li:last-child {
+  border-bottom: none;
+}
+
+li button {
+  background-color: #dc3545;
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+li button:hover {
+  background-color: #c82333;
+}
+
+/* Styles for password_prompt.html */
+.container { /* Used in password_prompt.html */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 90vh; /* Adjusted for better centering */
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+  width: 100%; /* Ensure it takes full width for centering */
+}
+
+#errorMessage { /* Used in password_prompt.html */
+  margin-top: 15px;
+  color: #dc3545;
+  font-weight: bold;
+}
+
+/* ...existing code... */
+li button:hover {
+  background-color: #c82333;
+}
+
+/* Styles for password_prompt.html body */
+body.password-prompt-page {
+  width: 100%; /* Override popup width */
+  min-height: 100vh;
+  display: flex; 
+  align-items: center;
+  justify-content: center;
+  padding: 0; 
+  margin: 0; 
+  background-color: #f4f4f9; /* Match popup background */
+}
+
+/* Styles for password_prompt.html */
+.container { /* Used in password_prompt.html */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px; /* Increased padding for better appearance */
+  box-sizing: border-box;
+  max-width: 400px; 
+  background-color: #fff; 
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+/* ...existing code... */
+
+#errorMessage { /* Used in password_prompt.html */
+  margin-top: 15px;
+  color: #dc3545;
+  font-weight: bold;
+}
+
+/* Modal Styles */
+.modal {
+  display: none; 
+  position: fixed; 
+  z-index: 1000; 
+  left: 0;
+  top: 0;
+  width: 100%; 
+  height: 100%; 
+  overflow: auto; 
+  background-color: rgba(0,0,0,0.4); 
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 10% auto; 
+  padding: 20px;
+  border: 1px solid #888;
+  width: 90%; 
+  max-width: 300px; 
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  position: relative;
+}
+
+.close-button {
+  color: #aaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.close-button:hover,
+.close-button:focus {
+  color: black;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#mathProblemsContainer .problem {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#mathProblemsContainer .problem label {
+  margin-right: 10px;
+  flex-basis: 70%; /* Give more space to the question */
+}
+
+#mathProblemsContainer .problem input {
+  width: 50px; 
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.error-message {
+  color: #dc3545;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+li div.site-info-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex-grow: 1;
+}
+
+li div.site-controls {
+  display: flex;
+  align-items: center;
+}
+
+li button.show-hide-password {
+  background-color: #17a2b8;
+  padding: 5px 8px;
+  font-size: 11px;
+  margin-right: 5px; /* Space between show/hide and remove */
+}
+li button.show-hide-password:hover {
+  background-color: #138496;
+}

@@ -1,0 +1,37 @@
+<!-- filepath: c:\Users\erikp\egnaprojekt\antibrainrot\popup.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Site Blocker</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+  <h2>Site Blocker</h2>
+
+  <div>
+    <h3>Add Website to Blocklist</h3>
+    <input type="text" id="urlInput" placeholder="e.g., example.com">
+    <input type="password" id="sitePasswordInput" placeholder="Password for this site">
+    <button id="addSiteButton">Add Site</button>
+  </div>
+
+  <div>
+    <h3>Blocked Sites</h3>
+    <ul id="blockedSitesList"></ul>
+  </div>
+
+  <div id="mathChallengeModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button" id="closeMathChallengeButton">&times;</span>
+      <h3>Math Challenge to Remove Site</h3>
+      <p>Solve 10 math problems to remove <strong id="mathChallengeSiteUrl"></strong>:</p>
+      <div id="mathProblemsContainer"></div>
+      <button id="submitMathAnswersButton">Submit Answers</button>
+      <p id="mathChallengeError" class="error-message"></p>
+    </div>
+  </div>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
